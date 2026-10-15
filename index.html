@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eshu Intelligence Portal | Mobile Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --accent: #38bdf8;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --glow: rgba(139, 92, 246, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: linear-gradient(135deg, #090d16 0%, #111827 50%, #0f172a 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            padding-bottom: 50px;
+        }
+
+        /* Ambient Glows */
+        .ambient-glow {
+            position: fixed;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+            top: -100px;
+            left: -100px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .ambient-glow-2 {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+            bottom: 5%;
+            right: -120px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px; /* Perfect Mobile Optimized Width */
+            margin: 0 auto;
+            padding: 0 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Professional Compact Header */
+        header {
+            padding: 20px 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .profile-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-avatar-container {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            box-shadow: 0 0 15px var(--glow);
+            flex-shrink: 0;
+        }
+
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #1e293b;
+        }
+
+        .brand-info h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .brand-info p {
+            font-size: 0.75rem;
+            color: var(--accent);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 2px;
+        }
+
+        .brand-info p::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--success);
+        }
+
+        .status-pill {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--success);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10px 0 20px;
+            text-align: center;
+        }
+
+        .hero h2 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .hero h2 span {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            max-width: 360px;
+            margin: 0 auto 24px;
+            line-height: 1.4;
+        }
+
+        /* Search Card */
+        .search-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px 12px;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--glow);
+        }
+
+        .input-wrapper span {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-right: 8px;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 1rem;
+            padding: 12px 4px;
+            font-weight: 600;
+        }
+
+        .search-input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+            font-weight: 400;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+            width: 100%;
+        }
+
+        .search-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Results Container */
+        #results-container {
+            display: none;
+            margin-bottom: 40px;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-header {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .results-header h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .meta-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .meta-badge strong {
+            color: #fff;
+        }
+
+        /* Clean Mobile Data Card UI */
+        .records-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .record-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 16px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .record-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+        }
+
+        .record-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .record-name-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .record-name-box i {
+            font-size: 1.2rem;
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .record-name-box h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .record-name-box span {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .record-index-badge {
+            font-size: 0.75rem;
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            font-weight: 600;
+        }
+
+        /* Mobile Key-Value Data Display List */
+        .data-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .data-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .data-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+        }
+
+        .data-value-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .data-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+            word-break: break-all;
+        }
+
+        /* Copy Button for Easy Copying */
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+        }
+
+        /* Connected numbers tags */
+        .connected-section {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .connected-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        .connected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .connected-tag {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        /* Sections: Services & Tools */
+        .section-block {
+            margin-bottom: 36px;
+        }
+
+        .section-header {
+            margin-bottom: 16px;
+        }
+
+        .section-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+        .services-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .service-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .service-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin-bottom: 14px;
+        }
+
+        .service-card h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .service-card p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .service-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 11px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-telegram {
+            background: rgba(0, 136, 204, 0.15);
+            color: #229ED9;
+            border: 1px solid rgba(0, 136, 204, 0.3);
+        }
+
+        .btn-whatsapp {
+            background: rgba(37, 211, 102, 0.15);
+            color: #25D366;
+            border: 1px solid rgba(37, 211, 102, 0.3);
+        }
+
+        .btn-primary-action {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Super Glowing Floating Support Button */
+        .floating-support {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 0 20px rgba(37, 211, 102, 0.7), 0 0 40px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            text-decoration: none;
+            animation: super-glow-pulse 2s infinite;
+        }
+
+        @keyframes super-glow-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(37, 211, 102, 0.7), 0 0 30px rgba(37, 211, 102, 0.3); }
+            50% { transform: scale(1.06); box-shadow: 0 0 30px rgba(37, 211, 102, 1), 0 0 60px rgba(37, 211, 102, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(37, 211, 102, 0.7), 0 0 30px rgba(37, 211, 102, 0.3); }
+        }
+
+        .loader-spinner {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .loader-spinner i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--danger);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px 0 10px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        footer span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow"></div>
+    <div class="ambient-glow-2"></div>
+
+    <div class="container">
+        <!-- Professional Header -->
+        <header>
+            <div class="profile-brand">
+                <div class="profile-avatar-container">
+                    <img src="eshu.jpg" alt="Eshu Codex" class="profile-avatar" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'">
+                </div>
+                <div class="brand-info">
+                    <h1>Eshu Intel</h1>
+                    <p>System Online</p>
+                </div>
+            </div>
+            <div class="status-pill">
+                <i class="fa-solid fa-shield-halved"></i> API Active
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <h2>Advanced <span>Lookup</span> Portal</h2>
+            <p>Enter any 10-digit mobile number for instant database retrieval.</p>
+            
+            <!-- Search Card -->
+            <div class="search-card">
+                <div class="search-input-group">
+                    <div class="input-wrapper">
+                        <span><i class="fa-solid fa-phone"></i></span>
+                        <input type="tel" id="phoneInput" class="search-input" placeholder="Enter 10-digit number" maxlength="10">
+                    </div>
+                    <button class="search-btn" id="searchBtn">
+                        <i class="fa-solid fa-magnifying-glass"></i> Search Data
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loader -->
+        <div class="loader-spinner" id="loader">
+            <i class="fa-solid fa-circle-notch"></i>
+            <p>Querying secure records...</p>
+        </div>
+
+        <!-- Error Message Container -->
+        <div class="error-message" id="errorMessage">
+            <i class="fa-solid fa-triangle-exclamation"></i> No records found or invalid response received. Please check the 10-digit number and try again.
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-container">
+            <div class="results-header">
+                <h3><i class="fa-solid fa-square-poll-vertical" style="color: var(--accent);"></i> Intelligence Report</h3>
+                <div class="meta-badges" id="metaBadges">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="records-grid" id="recordsGrid">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Section 1: Services & Tools -->
+        <section class="section-block">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-gamepad" style="color: var(--warning);"></i> Free Fire & Account Services</h3>
+                <p>Professional account security and management services.</p>
+            </div>
+            <div class="services-grid">
+                <!-- Service 1 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fa-solid fa-fire"></i></div>
+                        <h4>Free Fire Like Booster</h4>
+                        <p>Enhance your profile visibility and boost in-game engagement safely.</p>
+                    </div>
+                    <a href="https://t.me/autolikegrpeshu" target="_blank" class="service-btn btn-telegram">
+                        <i class="fa-brands fa-telegram"></i> Auto Like Group
+                    </a>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fa-solid fa-ban"></i></div>
+                        <h4>30 Days ID Ban Service</h4>
+                        <p>Reliable temporary suspension handling and status management.</p>
+                    </div>
+                    <a href="https://wa.me/918123561579?text=HELLO%20ESHU%20CODEX%20I%20NEED%2030%20DAYS%20ID%20BAN%20SERVICE" target="_blank" class="service-btn btn-whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp Support
+                    </a>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fa-solid fa-shield-virus"></i></div>
+                        <h4>Permanent ID Ban Service</h4>
+                        <p>Specialized priority account action requests via secure channels.</p>
+                    </div>
+                    <a href="https://wa.me/918123561579?text=HELLO%20ESHU%20CODEX%20I%20NEED%20PERMANENT%20ID%20BAN%20SERVICE" target="_blank" class="service-btn btn-whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp Support
+                    </a>
+                </div>
+
+                <!-- Service 4 (New) -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fa-solid fa-store"></i></div>
+                        <h4>Free Fire ID Selling Group</h4>
+                        <p>Join our trusted trading community to buy and sell verified gaming IDs securely.</p>
+                    </div>
+                    <a href="https://chat.whatsapp.com/CcHtYR0fjgyHoC4gRdyYyf?s=cl&p=a&mlu=4" target="_blank" class="service-btn btn-whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> Join Selling Group
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Advanced Cyber Security & Tools -->
+        <section class="section-block">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-terminal" style="color: var(--primary);"></i> Cyber Security Modules</h3>
+                <p>Advanced mobile security and protocol tools.</p>
+            </div>
+            <div class="services-grid">
+                <!-- Module 1 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+                        <h4>Learn Ethical Hacking in Phone</h4>
+                        <p>Master mobile-based penetration testing and security assessment.</p>
+                    </div>
+                    <a href="https://wa.me/918123561579?text=HELLO%20ESHU%20CODEX%20I%20WANT%20TO%20LEARN%20ETHICAL%20HACKING%20IN%20PHONE" target="_blank" class="service-btn btn-primary-action">
+                        <i class="fa-solid fa-graduation-cap"></i> Enroll Now
+                    </a>
+                </div>
+
+                <!-- Module 2 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fa-solid fa-location-crosshairs"></i></div>
+                        <h4>Live Location Tracking Protocol</h4>
+                        <p>High-accuracy geolocation tracking tools and guides.</p>
+                    </div>
+                    <a href="https://wa.me/918123561579?text=HELLO%20ESHU%20CODEX%20I%20NEED%20LINK%20TO%20LIVE%20LOCATION%20TRACKING" target="_blank" class="service-btn btn-whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> Get Access Link
+                    </a>
+                </div>
+
+                <!-- Module 3 -->
+                <div class="service-card">
+                    <div>
+                        <div class="service-icon"><i class="fa-solid fa-camera"></i></div>
+                        <h4>Remote Camera Module</h4>
+                        <p>Advanced interface protocols and secure connection frameworks.</p>
+                    </div>
+                    <a href="https://wa.me/918123561579?text=HELLO%20ESHU%20CODEX%20I%20NEED%20PHONE%20CAMERA%20MODULE%20ACCESS" target="_blank" class="service-btn btn-whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> Get Access Link
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>Powered by <span>@Eshucording</span> | Owner: <span>ESHU CODEX</span></p>
+        </footer>
+    </div>
+
+    <!-- Super Glowing Floating Support Button -->
+    <a href="https://wa.me/918123561579?text=HELLO%20ESHU%20CODEX%20I%20NEED%20HELP" target="_blank" class="floating-support" title="Contact Support">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <script>
+        // Universal Copy to Clipboard Helper
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = btnElement.querySelector('i');
+                btnElement.classList.add('copied');
+                icon.className = 'fa-solid fa-check';
+                setTimeout(() => {
+                    btnElement.classList.remove('copied');
+                    icon.className = 'fa-regular fa-copy';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+
+        function cleanPhoneNumber(input) {
+            let cleaned = input.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '');
+            if (cleaned.length > 10) {
+                cleaned = cleaned.slice(-10);
+            }
+            return cleaned.trim();
+        }
+
+        function renderResults(data) {
+            const resultsContainer = document.getElementById('results-container');
+            const errorMessage = document.getElementById('errorMessage');
+            const metaBadges = document.getElementById('metaBadges');
+            const recordsGrid = document.getElementById('recordsGrid');
+
+            errorMessage.style.display = 'none';
+
+            metaBadges.innerHTML = `
+                <div class="meta-badge">Query: <strong>${data.query || data.number}</strong></div>
+                <div class="meta-badge">Found: <strong>${data.count || data.total || 0}</strong></div>
+                <div class="meta-badge">Plan: <strong>${data.api_key_valid_till || 'LIFETIME'}</strong></div>
+            `;
+
+            recordsGrid.innerHTML = '';
+
+            if (!data.results || data.results.length === 0) {
+                errorMessage.style.display = 'block';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+
+            data.results.forEach((record, index) => {
+                const formattedAddress = record.address ? record.address.replace(/!/g, ', ') : 'N/A';
+                const aadharVal = record.aadharNumber ? record.aadharNumber : 'N/A';
+                const phoneVal = record.phoneNumber ? '+91 ' + record.phoneNumber : 'N/A';
+                const otherVal = record.otherNumber ? '+91 ' + record.otherNumber : 'N/A';
+                const fatherVal = record.fathersName ? record.fathersName : 'N/A';
+                const nameVal = record.name ? record.name.trim() : 'N/A';
+
+                let connectedHtml = '';
+                if (record.connected_numbers && record.connected_numbers.length > 0) {
+                    const tags = record.connected_numbers.map(cn => `
+                        <div class="connected-tag">
+                            <i class="fa-solid fa-link"></i> ${cn.field}: <strong>${cn.value}</strong>
+                            <button class="copy-btn" style="width:22px;height:22px;margin-left:2px;" onclick="copyToClipboard('${cn.value}', this)" title="Copy"><i class="fa-regular fa-copy" style="font-size:0.65rem;"></i></button>
+                        </div>
+                    `).join('');
+
+                    connectedHtml = `
+                        <div class="connected-section">
+                            <div class="connected-title"><i class="fa-solid fa-network-wired"></i> Connected Links</div>
+                            <div class="connected-tags">${tags}</div>
+                        </div>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'record-card';
+                card.innerHTML = `
+                    <div class="record-header-row">
+                        <div class="record-name-box">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <div>
+                                <h4>${nameVal}</h4>
+                                <span>Verified Record</span>
+                            </div>
+                        </div>
+                        <span class="record-index-badge">#${index + 1}</span>
+                    </div>
+
+                    <div class="data-list">
+                        <div class="data-box">
+                            <span class="data-label"><i class="fa-solid fa-user"></i> Full Name</span>
+                            <div class="data-value-row">
+                                <span class="data-value">${nameVal}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${nameVal}', this)" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="data-box">
+                            <span class="data-label"><i class="fa-solid fa-user-pen"></i> Father's Name</span>
+                            <div class="data-value-row">
+                                <span class="data-value">${fatherVal}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${fatherVal}', this)" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="data-box">
+                            <span class="data-label"><i class="fa-solid fa-phone"></i> Phone Number</span>
+                            <div class="data-value-row">
+                                <span class="data-value">${phoneVal}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${record.phoneNumber || phoneVal}', this)" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="data-box">
+                            <span class="data-label"><i class="fa-solid fa-id-card"></i> Aadhaar Number</span>
+                            <div class="data-value-row">
+                                <span class="data-value">${aadharVal}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${aadharVal}', this)" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="data-box">
+                            <span class="data-label"><i class="fa-solid fa-phone-volume"></i> Alternate Number</span>
+                            <div class="data-value-row">
+                                <span class="data-value">${otherVal}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${record.otherNumber || otherVal}', this)" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="data-box">
+                            <span class="data-label"><i class="fa-solid fa-database"></i> Source</span>
+                            <div class="data-value-row">
+                                <span class="data-value">${record.source || 'inddata'}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${record.source || 'inddata'}', this)" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="data-box">
+                            <span class="data-label"><i class="fa-solid fa-location-dot"></i> Address Details</span>
+                            <div class="data-value-row" style="align-items: flex-start;">
+                                <span class="data-value" style="font-size: 0.88rem; line-height: 1.4; font-weight: 500;">${formattedAddress}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${formattedAddress}', this)" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    ${connectedHtml}
+                `;
+                recordsGrid.appendChild(card);
+            });
+
+            resultsContainer.style.display = 'block';
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function performSearch() {
+            const rawInput = document.getElementById('phoneInput').value;
+            const cleanedNumber = cleanPhoneNumber(rawInput);
+            
+            if (!cleanedNumber || cleanedNumber.length < 10) {
+                alert('Please enter a valid 10-digit mobile number.');
+                return;
+            }
+
+            document.getElementById('phoneInput').value = cleanedNumber;
+            const loader = document.getElementById('loader');
+            const resultsContainer = document.getElementById('results-container');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            resultsContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                const apiUrl = `https://eshu-api.app.ravenhost.space/search?q=${cleanedNumber}&api_key=QbIhMVCoZbumP5mEb3YLOEDqd5ZPF`;
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                loader.style.display = 'none';
+
+                if (data && data.success && data.results && data.results.length > 0) {
+                    renderResults(data);
+                } else {
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('API fetch error:', error);
+                loader.style.display = 'none';
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+        document.getElementById('phoneInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    </script>
+</body>
+</html>
