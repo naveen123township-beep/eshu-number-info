@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-    // Enable CORS for frontend requests
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,18 +7,7 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
-    const { q, ping } = req.query;
-
-    // Automated Keep-Alive Ping for Render
-    if (ping === 'true') {
-        try {
-            const renderPingUrl = `https://eshu-number-info-v2.onrender.com/search?q=9876543210&api_key=D3kOTmUFzZUrYiJQWmTho8BbxbFh78bx`;
-            await fetch(renderPingUrl);
-            return res.status(200).json({ success: true, message: 'Keep-alive ping sent.' });
-        } catch (e) {
-            return res.status(200).json({ success: false, message: 'Ping warning.' });
-        }
-    }
+    const { q } = req.query;
 
     if (!q) {
         return res.status(400).json({ success: false, message: 'Query parameter "q" is required.' });
@@ -31,6 +19,7 @@ export default async function handler(req, res) {
         cleaned = cleaned.slice(-10);
     }
 
+    // Replace with your actual active API endpoint if hosted elsewhere
     const targetUrl = `https://eshu-number-info-v2.onrender.com/search?q=${cleaned}&api_key=D3kOTmUFzZUrYiJQWmTho8BbxbFh78bx`;
 
     try {
@@ -39,6 +28,6 @@ export default async function handler(req, res) {
         return res.status(200).json(data);
     } catch (error) {
         console.error('Backend fetch error:', error);
-        return res.status(500).json({ success: false, message: 'Failed to fetch from Render API.' });
+        return res.status(500).json({ success: false, message: 'Failed to fetch from API server.' });
     }
 }
