@@ -19,8 +19,8 @@ export default async function handler(req, res) {
         cleaned = cleaned.slice(-10);
     }
 
-    // Replace with your actual active API endpoint if hosted elsewhere
-    const targetUrl = `https://eshu-number-info-v2.onrender.com/search?q=${cleaned}&api_key=D3kOTmUFzZUrYiJQWmTho8BbxbFh78bx`;
+    // Correct target API endpoint using your new Cloudflare Worker URL and key
+    const targetUrl = `https://devilswillrise.kotakmahindrabank9090.workers.dev/number?key=PROVIDER365&number=${cleaned}`;
 
     try {
         const apiResponse = await fetch(targetUrl);
