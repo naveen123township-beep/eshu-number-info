@@ -199,12 +199,49 @@ export default async function handler(req, res) {
     const remainingCredits = userCredits - 1;
     await redis('SET', userCreditKey, remainingCredits);
 
-    const targetUrl = `https://devilswillrise.kotakmahindrabank9090.workers.dev/number?key=PROVIDER365&number=${cleaned}`;
+    // --- NEW WORKER API ENDPOINT INTEGRATION ---
+    const targetUrl = `https://num-info.noobster11001.workers.dev?key=@noob11001&num=${cleaned}`;
 
     try {
         const apiResponse = await fetch(targetUrl);
-        const data = await apiResponse.json();
-        return res.status(200).json({ ...data, remainingCredits });
+        const rawData = await apiResponse.json();
+
+        // Map the new API response into legacy FromDB structure for smooth web rendering
+        const mappedResponse = {
+            success: true,
+            number: rawData.number || cleaned,
+            remainingCredits
+        };
+
+        if (rawData.hiteck_info && rawData.hiteck_info.data) {
+            mappedResponse.FromDB1 = {
+                name: rawData.hiteck_info.data.name || '',
+                fname: rawData.hiteck_info.data.fname || '',
+                mobile: rawData.hiteck_info.data.mobile || cleaned,
+                alt: rawData.hiteck_info.data.alt || '',
+                id: rawData.hiteck_info.data.id || '',
+                circle: rawData.hiteck_info.data.circle || '',
+                email: rawData.hiteck_info.data.email || '',
+                address: rawData.hiteck_info.data.address || '',
+                _src: 'HITECK DB'
+            };
+        }
+
+        if (rawData.icmr_info && rawData.icmr_info.data) {
+            mappedResponse.FromDB2 = {
+                name: rawData.icmr_info.data.name || '',
+                fname: rawData.icmr_info.data.fname || '',
+                mobile: rawData.icmr_info.data.mobile || cleaned,
+                alt: rawData.icmr_info.data.alt || '',
+                id: rawData.icmr_info.data.id || '',
+                circle: rawData.icmr_info.data.circle || '',
+                email: rawData.icmr_info.data.email || '',
+                address: rawData.icmr_info.data.address || '',
+                _src: 'ICMR DB'
+            };
+        }
+
+        return res.status(200).json(mappedResponse);
     } catch (error) {
         await redis('SET', userCreditKey, userCredits);
         return res.status(500).json({ success: false, message: '❌ Failed to connect to database server.' });
