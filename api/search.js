@@ -156,94 +156,22 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true, credits: parseInt(userCredits) });
     }
 
-    const qParam = q || req.query.q;
-    const uidParam = userId || req.query.userId;
+    // --- CHECK ENCRYPTED NUMBER ACTION ---
+    if (action === 'check_encryption') {
+        const qParam = q;
+        if (!qParam) return res.status(400).json({ encrypted: false });
+        let cleaned = qParam.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '').trim();
+        if (cleaned.length > 10) cleaned = cleaned.slice(-10);
 
-    if (!qParam || !uidParam) {
-        return res.status(400).json({ success: false, message: 'Query "q" and "userId" are required.' });
-    }
-
-    let cleaned = qParam.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '').trim();
-    if (cleaned.length > 10) cleaned = cleaned.slice(-10);
-
-    const isEncrypted = await redis('SISMEMBER', 'encrypted_numbers', cleaned);
-    if (isEncrypted === 1) {
-        return res.status(200).json({
-            success: true,
-            encrypted_by_admin: true,
-            message: "🔒 Number is encrypted by admin contact 8123561579"
-        });
-    }
-
-    const userCreditKey = `credits:${uidParam}`;
-    let userCredits = parseInt(await redis('GET', userCreditKey) || 0);
-
-    const now = new Date();
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const istDate = new Date(utc + (3600000 * 5.5));
-    if (istDate.getHours() < 4) istDate.setDate(istDate.getDate() - 1);
-    const cycleKey = istDate.toISOString().split('T')[0];
-    const userResetKey = `reset:${uidParam}`;
-    const lastReset = await redis('GET', userResetKey);
-
-    if (lastReset !== cycleKey) {
-        userCredits = 2;
-        await redis('SET', userCreditKey, 2);
-        await redis('SET', userResetKey, cycleKey);
-    }
-
-    if (userCredits <= 0) {
-        return res.status(200).json({ success: false, low_credits: true, message: '⚠️ Insufficient credits! Please top-up via redeem code or WhatsApp.' });
-    }
-
-    const remainingCredits = userCredits - 1;
-    await redis('SET', userCreditKey, remainingCredits);
-
-    // --- NEW WORKER API ENDPOINT INTEGRATION ---
-    const targetUrl = `https://num-info.noobster11001.workers.dev?key=@noob11001&num=${cleaned}`;
-
-    try {
-        const apiResponse = await fetch(targetUrl);
-        const rawData = await apiResponse.json();
-
-        // Map the new API response into legacy FromDB structure for smooth web rendering
-        const mappedResponse = {
-            success: true,
-            number: rawData.number || cleaned,
-            remainingCredits
-        };
-
-        if (rawData.hiteck_info && rawData.hiteck_info.data) {
-            mappedResponse.FromDB1 = {
-                name: rawData.hiteck_info.data.name || '',
-                fname: rawData.hiteck_info.data.fname || '',
-                mobile: rawData.hiteck_info.data.mobile || cleaned,
-                alt: rawData.hiteck_info.data.alt || '',
-                id: rawData.hiteck_info.data.id || '',
-                circle: rawData.hiteck_info.data.circle || '',
-                email: rawData.hiteck_info.data.email || '',
-                address: rawData.hiteck_info.data.address || '',
-                _src: 'HITECK DB'
-            };
+        const isEncrypted = await redis('SISMEMBER', 'encrypted_numbers', cleaned);
+        if (isEncrypted === 1) {
+            return res.status(200).json({ 
+                encrypted: true, 
+                message: "Number is encrypted contact admin 8123561579" 
+            });
         }
-
-        if (rawData.icmr_info && rawData.icmr_info.data) {
-            mappedResponse.FromDB2 = {
-                name: rawData.icmr_info.data.name || '',
-                fname: rawData.icmr_info.data.fname || '',
-                mobile: rawData.icmr_info.data.mobile || cleaned,
-                alt: rawData.icmr_info.data.alt || '',
-                id: rawData.icmr_info.data.id || '',
-                circle: rawData.icmr_info.data.circle || '',
-                email: rawData.icmr_info.data.email || '',
-                address: rawData.icmr_info.data.address || '',
-                _src: 'ICMR DB'
-            };
-        }
-
-        return res.status(200).json(mappedResponse);
-    } catch (error) {
-        await redis('SET', userCreditKey, userCredits);
-        return res.status(500).json({ success: false, message: '❌ Failed to connect to database server.' });
+        return res.status(200).json({ encrypted: false });
     }
+
+    return res.status(400).json({ success: false, message: 'Invalid action.' });
 }
