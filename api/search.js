@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
     if (action === 'get_announcement') {
         const text = await redis('GET', 'global_announcement');
-        return res.status(200).json({ success: true, announcement: text || "🔥 Welcome to Eshu Intelligence Portal! Join our Telegram @Eshucording for free redeem codes!" });
+        return res.status(200).json({ success: true, announcement: text || "🔥 Welcome to Eshu Intelligence Portal! Join our WhatsApp & Telegram for free redeem codes!" });
     }
 
     if (action === 'encrypt_number') {
