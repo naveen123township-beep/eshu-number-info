@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
-    const { action, q, password, number, code, credits, userId } = req.query;
+    const { action, q, password, number, code, credits, userId, announcement } = req.query;
 
     if (action === 'admin_login') {
         if (password === 'ESHU16') {
@@ -27,10 +27,25 @@ export default async function handler(req, res) {
         return res.status(401).json({ success: false, message: '❌ Invalid Admin Password.' });
     }
 
+    if (action === 'update_announcement') {
+        if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
+        if (announcement !== undefined) {
+            await redis('SET', 'global_announcement', announcement);
+            return res.status(200).json({ success: true, message: '✨ Global announcement banner updated successfully!' });
+        }
+        return res.status(400).json({ success: false, message: '⚠️ Announcement text required.' });
+    }
+
+    if (action === 'get_announcement') {
+        const text = await redis('GET', 'global_announcement');
+        return res.status(200).json({ success: true, announcement: text || "🔥 Welcome to Eshu Intelligence Portal! Join our Telegram @Eshucording for free redeem codes!" });
+    }
+
     if (action === 'encrypt_number') {
         if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
         if (number) {
-            const cleanNum = number.trim().slice(-10);
+            let cleanNum = number.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '');
+            if (cleanNum.length > 10) cleanNum = cleanNum.slice(-10);
             await redis('SADD', 'encrypted_numbers', cleanNum);
             return res.status(200).json({ success: true, message: `🔒 Number ${cleanNum} encrypted successfully by Admin.` });
         }
@@ -40,7 +55,8 @@ export default async function handler(req, res) {
     if (action === 'decrypt_number') {
         if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
         if (number) {
-            const cleanNum = number.trim().slice(-10);
+            let cleanNum = number.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '');
+            if (cleanNum.length > 10) cleanNum = cleanNum.slice(-10);
             await redis('SREM', 'encrypted_numbers', cleanNum);
             return res.status(200).json({ success: true, message: `🔓 Number ${cleanNum} decrypted successfully.` });
         }
@@ -51,7 +67,6 @@ export default async function handler(req, res) {
         if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
         if (code && credits) {
             const cleanCode = code.trim().toUpperCase();
-            // Store code value and add to active redeem codes set tracker
             await redis('SET', `redeem:${cleanCode}`, credits);
             await redis('SADD', 'active_redeem_codes', cleanCode);
             return res.status(200).json({ success: true, message: `✨ Redeem code [ ${cleanCode} ] generated with ⚡ ${credits} credits successfully!` });
@@ -69,7 +84,6 @@ export default async function handler(req, res) {
                 if (val) {
                     codeList.push({ code: c, credits: val });
                 } else {
-                    // Clean up if expired/missing
                     await redis('SREM', 'active_redeem_codes', c);
                 }
             }
@@ -85,7 +99,7 @@ export default async function handler(req, res) {
             if (redeemVal) {
                 const addAmount = parseInt(redeemVal);
                 await redis('DEL', `redeem:${cleanCode}`);
-                await redis('SREM', 'active_redeem_codes', cleanCode); // Remove from active admin view
+                await redis('SREM', 'active_redeem_codes', cleanCode);
                 
                 const userCreditKey = `credits:${userId}`;
                 const currentCredits = await redis('GET', userCreditKey);
@@ -143,7 +157,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ success: false, message: 'Query "q" and "userId" are required.' });
     }
 
-    let cleaned = qParam.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '');
+    // Automatically remove +91, spaces, dashes, brackets before hitting API
+    let cleaned = qParam.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '').trim();
     if (cleaned.length > 10) cleaned = cleaned.slice(-10);
 
     const isEncrypted = await redis('SISMEMBER', 'encrypted_numbers', cleaned);
