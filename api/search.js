@@ -1,4 +1,3 @@
-// Paste this inside your api/search.js file on Vercel
 const REDIS_URL = "https://fun-hamster-140785.upstash.io";
 const REDIS_TOKEN = "gQAAAAAAAiXxAAIgcDEwMTI2ZTRiMDYyMDk0ODJmYmE0YzA0NzVhYzRjYjE0YQ";
 
@@ -23,9 +22,9 @@ export default async function handler(req, res) {
 
     if (action === 'admin_login') {
         if (password === 'ESHU16') {
-            return res.status(200).json({ success: true, message: 'Admin authenticated.' });
+            return res.status(200).json({ success: true, message: '💎 Admin authenticated successfully.' });
         }
-        return res.status(401).json({ success: false, message: 'Invalid Admin Password.' });
+        return res.status(401).json({ success: false, message: '❌ Invalid Admin Password.' });
     }
 
     if (action === 'encrypt_number') {
@@ -33,9 +32,9 @@ export default async function handler(req, res) {
         if (number) {
             const cleanNum = number.trim().slice(-10);
             await redis('SADD', 'encrypted_numbers', cleanNum);
-            return res.status(200).json({ success: true, message: `Number ${cleanNum} encrypted successfully.` });
+            return res.status(200).json({ success: true, message: `🔒 Number ${cleanNum} encrypted successfully by Admin.` });
         }
-        return res.status(400).json({ success: false, message: 'Number required.' });
+        return res.status(400).json({ success: false, message: '⚠️ Number required.' });
     }
 
     if (action === 'decrypt_number') {
@@ -43,19 +42,39 @@ export default async function handler(req, res) {
         if (number) {
             const cleanNum = number.trim().slice(-10);
             await redis('SREM', 'encrypted_numbers', cleanNum);
-            return res.status(200).json({ success: true, message: `Number ${cleanNum} decrypted successfully.` });
+            return res.status(200).json({ success: true, message: `🔓 Number ${cleanNum} decrypted successfully.` });
         }
-        return res.status(400).json({ success: false, message: 'Number required.' });
+        return res.status(400).json({ success: false, message: '⚠️ Number required.' });
     }
 
     if (action === 'create_redeem') {
         if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
         if (code && credits) {
             const cleanCode = code.trim().toUpperCase();
+            // Store code value and add to active redeem codes set tracker
             await redis('SET', `redeem:${cleanCode}`, credits);
-            return res.status(200).json({ success: true, message: `Redeem code ${cleanCode} created for ${credits} credits.` });
+            await redis('SADD', 'active_redeem_codes', cleanCode);
+            return res.status(200).json({ success: true, message: `✨ Redeem code [ ${cleanCode} ] generated with ⚡ ${credits} credits successfully!` });
         }
-        return res.status(400).json({ success: false, message: 'Code and credit amount required.' });
+        return res.status(400).json({ success: false, message: '⚠️ Code and credit amount required.' });
+    }
+
+    if (action === 'get_active_codes') {
+        if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
+        const codes = await redis('SMEMBERS', 'active_redeem_codes');
+        let codeList = [];
+        if (codes && Array.isArray(codes)) {
+            for (let c of codes) {
+                let val = await redis('GET', `redeem:${c}`);
+                if (val) {
+                    codeList.push({ code: c, credits: val });
+                } else {
+                    // Clean up if expired/missing
+                    await redis('SREM', 'active_redeem_codes', c);
+                }
+            }
+        }
+        return res.status(200).json({ success: true, codes: codeList });
     }
 
     if (action === 'redeem_code') {
@@ -66,17 +85,23 @@ export default async function handler(req, res) {
             if (redeemVal) {
                 const addAmount = parseInt(redeemVal);
                 await redis('DEL', `redeem:${cleanCode}`);
+                await redis('SREM', 'active_redeem_codes', cleanCode); // Remove from active admin view
                 
                 const userCreditKey = `credits:${userId}`;
                 const currentCredits = await redis('GET', userCreditKey);
                 const newTotal = (parseInt(currentCredits) || 0) + addAmount;
                 await redis('SET', userCreditKey, newTotal);
 
-                return res.status(200).json({ success: true, creditsAdded: addAmount, totalCredits: newTotal });
+                return res.status(200).json({ 
+                    success: true, 
+                    creditsAdded: addAmount, 
+                    totalCredits: newTotal,
+                    message: `🎉 SUCCESS! Added ⚡ ${addAmount} Credits to your account!`
+                });
             }
-            return res.status(400).json({ success: false, message: 'Invalid or already used redeem code.' });
+            return res.status(400).json({ success: false, message: '❌ Invalid or already claimed redeem voucher code.' });
         }
-        return res.status(400).json({ success: false, message: 'Code required.' });
+        return res.status(400).json({ success: false, message: '⚠️ Code required.' });
     }
 
     if (action === 'check_credits') {
@@ -111,7 +136,6 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true, credits: parseInt(userCredits) });
     }
 
-    // Default search action with credit check and encryption block check
     const qParam = q || req.query.q;
     const uidParam = userId || req.query.userId;
 
@@ -127,14 +151,13 @@ export default async function handler(req, res) {
         return res.status(200).json({
             success: true,
             encrypted_by_admin: true,
-            message: "number is encrypted by admin contact 8123561579"
+            message: "🔒 Number is encrypted by admin contact 8123561579"
         });
     }
 
     const userCreditKey = `credits:${uidParam}`;
     let userCredits = parseInt(await redis('GET', userCreditKey) || 0);
 
-    // Initial default check if not synced yet
     const now = new Date();
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const istDate = new Date(utc + (3600000 * 5.5));
@@ -150,7 +173,7 @@ export default async function handler(req, res) {
     }
 
     if (userCredits <= 0) {
-        return res.status(200).json({ success: false, low_credits: true, message: 'Insufficient credits!' });
+        return res.status(200).json({ success: false, low_credits: true, message: '⚠️ Insufficient credits! Please top-up via redeem code or WhatsApp.' });
     }
 
     const remainingCredits = userCredits - 1;
@@ -163,7 +186,7 @@ export default async function handler(req, res) {
         const data = await apiResponse.json();
         return res.status(200).json({ ...data, remainingCredits });
     } catch (error) {
-        await redis('SET', userCreditKey, userCredits); // Refund credit on failure
-        return res.status(500).json({ success: false, message: 'Failed to fetch from API server.' });
+        await redis('SET', userCreditKey, userCredits);
+        return res.status(500).json({ success: false, message: '❌ Failed to connect to database server.' });
     }
 }
