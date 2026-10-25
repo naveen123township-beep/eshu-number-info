@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     if (action === 'encrypt_number') {
         if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
         if (number) {
-            let cleanNum = number.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '');
+            let cleanNum = number.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '').trim();
             if (cleanNum.length > 10) cleanNum = cleanNum.slice(-10);
             await redis('SADD', 'encrypted_numbers', cleanNum);
             return res.status(200).json({ success: true, message: `🔒 Number ${cleanNum} encrypted successfully by Admin.` });
@@ -55,12 +55,18 @@ export default async function handler(req, res) {
     if (action === 'decrypt_number') {
         if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
         if (number) {
-            let cleanNum = number.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '');
+            let cleanNum = number.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '').trim();
             if (cleanNum.length > 10) cleanNum = cleanNum.slice(-10);
             await redis('SREM', 'encrypted_numbers', cleanNum);
             return res.status(200).json({ success: true, message: `🔓 Number ${cleanNum} decrypted successfully.` });
         }
         return res.status(400).json({ success: false, message: '⚠️ Number required.' });
+    }
+
+    if (action === 'get_encrypted_list') {
+        if (password !== 'ESHU16') return res.status(401).json({ success: false, message: 'Unauthorized' });
+        const encryptedList = await redis('SMEMBERS', 'encrypted_numbers');
+        return res.status(200).json({ success: true, numbers: encryptedList || [] });
     }
 
     if (action === 'create_redeem') {
@@ -157,7 +163,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ success: false, message: 'Query "q" and "userId" are required.' });
     }
 
-    // Automatically remove +91, spaces, dashes, brackets before hitting API
     let cleaned = qParam.replace(/\+91/g, '').replace(/[\s\-\(\)]/g, '').trim();
     if (cleaned.length > 10) cleaned = cleaned.slice(-10);
 
