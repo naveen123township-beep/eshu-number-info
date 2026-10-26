@@ -107,15 +107,29 @@ export default async function handler(req, res) {
                 await redis('DEL', `redeem:${cleanCode}`);
                 await redis('SREM', 'active_redeem_codes', cleanCode);
                 
-                const userCreditKey = `credits:${userId}`;
-                const currentCredits = await redis('GET', userCreditKey);
-                const newTotal = (parseInt(currentCredits) || 0) + addAmount;
-                await redis('SET', userCreditKey, newTotal);
+                const bonusKey = `bonus_credits:${userId}`;
+                const currentBonus = parseInt(await redis('GET', bonusKey) || 0);
+                const newBonusTotal = currentBonus + addAmount;
+                await redis('SET', bonusKey, newBonusTotal);
+
+                // Calculate combined total for user response
+                const now = new Date();
+                const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                const istDate = new Date(utc + (3600000 * 5.5));
+                if (istDate.getHours() < 4) istDate.setDate(istDate.getDate() - 1);
+                const cycleKey = istDate.toISOString().split('T')[0];
+                const userResetKey = `reset:${userId}`;
+                const lastReset = await redis('GET', userResetKey);
+
+                let dailyLeft = 2;
+                if (lastReset === cycleKey) {
+                    dailyLeft = parseInt(await redis('GET', `daily_credits:${userId}`) ?? 2);
+                }
 
                 return res.status(200).json({ 
                     success: true, 
                     creditsAdded: addAmount, 
-                    totalCredits: newTotal,
+                    totalCredits: dailyLeft + newBonusTotal,
                     message: `🎉 SUCCESS! Added ⚡ ${addAmount} Credits to your account!`
                 });
             }
@@ -138,25 +152,70 @@ export default async function handler(req, res) {
 
         const userResetKey = `reset:${userId}`;
         const lastReset = await redis('GET', userResetKey);
-        const userCreditKey = `credits:${userId}`;
+        const dailyKey = `daily_credits:${userId}`;
+        const bonusKey = `bonus_credits:${userId}`;
 
+        let dailyLeft = 2;
         if (lastReset !== cycleKey) {
-            await redis('SET', userCreditKey, 2);
+            await redis('SET', dailyKey, 2);
             await redis('SET', userResetKey, cycleKey);
-            return res.status(200).json({ success: true, credits: 2 });
+            dailyLeft = 2;
+        } else {
+            let val = await redis('GET', dailyKey);
+            if (val === null) {
+                await redis('SET', dailyKey, 2);
+                dailyLeft = 2;
+            } else {
+                dailyLeft = parseInt(val);
+            }
         }
 
-        let userCredits = await redis('GET', userCreditKey);
-        if (userCredits === null) {
-            await redis('SET', userCreditKey, 2);
-            await redis('SET', userResetKey, cycleKey);
-            userCredits = 2;
-        }
-
-        return res.status(200).json({ success: true, credits: parseInt(userCredits) });
+        const bonusLeft = parseInt(await redis('GET', bonusKey) || 0);
+        return res.status(200).json({ success: true, credits: dailyLeft + bonusLeft });
     }
 
-    // --- CHECK ENCRYPTED NUMBER ACTION ---
+    if (action === 'deduct_credit') {
+        if (!userId) return res.status(400).json({ success: false, message: 'User ID required.' });
+
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const istDate = new Date(utc + (3600000 * 5.5));
+        if (istDate.getHours() < 4) istDate.setDate(istDate.getDate() - 1);
+        const cycleKey = istDate.toISOString().split('T')[0];
+
+        const userResetKey = `reset:${userId}`;
+        const lastReset = await redis('GET', userResetKey);
+        const dailyKey = `daily_credits:${userId}`;
+        const bonusKey = `bonus_credits:${userId}`;
+
+        let dailyLeft = 2;
+        if (lastReset !== cycleKey) {
+            await redis('SET', dailyKey, 2);
+            await redis('SET', userResetKey, cycleKey);
+            dailyLeft = 2;
+        } else {
+            dailyLeft = parseInt(await redis('GET', dailyKey) ?? 2);
+        }
+
+        let bonusLeft = parseInt(await redis('GET', bonusKey) || 0);
+        let totalCredits = dailyLeft + bonusLeft;
+
+        if (totalCredits <= 0) {
+            return res.status(200).json({ success: false, low_credits: true, message: '⚠️ Insufficient credits!' });
+        }
+
+        // Deduct from daily credits first, then bonus credits
+        if (dailyLeft > 0) {
+            dailyLeft -= 1;
+            await redis('SET', dailyKey, dailyLeft);
+        } else if (bonusLeft > 0) {
+            bonusLeft -= 1;
+            await redis('SET', bonusKey, bonusLeft);
+        }
+
+        return res.status(200).json({ success: true, credits: dailyLeft + bonusLeft });
+    }
+
     if (action === 'check_encryption') {
         const qParam = q;
         if (!qParam) return res.status(400).json({ encrypted: false });
